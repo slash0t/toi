@@ -11,7 +11,7 @@ def generate_uniform(a, b, size):
     samples = a + b * alpha
     return samples
 
-realizations = np.arange(100, 1000001, 100)
+realizations = np.arange(100, 100001, 100)
 sample_variances = []
 
 print(f"Равномерное распределение R({a}, {b})")
@@ -21,7 +21,7 @@ print("Генерация данных...")
 for N in realizations:
     samples = generate_uniform(a, b, N)
     
-    sample_var = np.var(samples, ddof=1)
+    sample_var = np.var(samples)
     sample_variances.append(sample_var)
     
     if N % 5000 == 0:
@@ -29,10 +29,10 @@ for N in realizations:
 
 def plot_graph(x, y, filename, ylabel):
     plt.figure(figsize=(10, 6))
-    plt.plot(
+    plt.scatter(
         x,
         y,
-        'b-',
+        s=15,
         alpha=0.7,
         linewidth=1,
         label='Выборочная дисперсия',
