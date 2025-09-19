@@ -11,7 +11,7 @@ def generate_uniform(a, b, size):
     samples = a + b * alpha
     return samples
 
-realizations = np.arange(100, 30001, 50)
+realizations = np.arange(100, 1000001, 100)
 sample_variances = []
 
 print(f"Равномерное распределение R({a}, {b})")
@@ -27,28 +27,47 @@ for N in realizations:
     if N % 5000 == 0:
         print(f"N = {N}: выборочная дисперсия = {sample_var:.4f}")
 
-plt.figure(figsize=(10, 6))
-plt.plot(
-    realizations,
-    sample_variances,
-    'b-',
-    alpha=0.7,
-    linewidth=1,
-    label='Выборочная дисперсия',
-)
-plt.axhline(
-    y=theoretical_variance,
-    color='r',
-    linestyle='--',
-    linewidth=2,
-    label=f'Теоретическая дисперсия = {theoretical_variance:.4f}',
-)
+def plot_graph(x, y, filename, ylabel):
+    plt.figure(figsize=(10, 6))
+    plt.plot(
+        x,
+        y,
+        'b-',
+        alpha=0.7,
+        linewidth=1,
+        label='Выборочная дисперсия',
+    )
+    plt.axhline(
+        y=theoretical_variance,
+        color='r',
+        linestyle='--',
+        linewidth=2,
+        label=f'Теоретическая дисперсия = {theoretical_variance:.4f}',
+    )
 
-plt.xlabel('Количество реализаций')
-plt.ylabel('Дисперсия')
-plt.title(f'Зависимость дисперсии от числа реализаций для R({a}, {b})')
-plt.legend()
-plt.grid(True, alpha=0.3)
-plt.tight_layout()
+    plt.xlabel('Количество реализаций')
+    plt.ylabel(ylabel)
+    plt.title(f'Зависимость дисперсии от числа реализаций для R({a}, {b})')
+    plt.legend()
+    plt.grid(True, alpha=0.3)
+    plt.tight_layout()
 
-plt.savefig('krutoy_graphic.png', dpi=150)
+    plt.savefig(filename, dpi=150)
+
+
+plot_graph(realizations, sample_variances, 'krutoy_graphic.png', 'Дисперсия')
+
+# window = 5
+# averaged_realizations = []
+# averaged_sample_variances = []
+
+# for i in range(0, len(realizations), 5):
+#     start = i
+#     end = min(start + 5, len(realizations))
+#     cnt = end - start
+#     averaged_realizations.append(sum(realizations[start:end]) / cnt)
+#     averaged_sample_variances.append(sum(sample_variances[start:end]) / cnt)
+# print(averaged_realizations[-1])
+# print(averaged_sample_variances[-1])
+
+# plot_graph(averaged_realizations, averaged_sample_variances, 'krutoy_graphic2.png', f'Средняя дисперсия по окнам {window}')
