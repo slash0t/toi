@@ -28,9 +28,6 @@ def generate_gaussian_2class(n_samples, priors, means, covs, rng):
 
 
 def fit_best_svm(X_train, y_train, kernel_name, param_grid, seed):
-    """
-    Подбор гиперпараметров через CV, чтобы сравнение ядер было честным.
-    """
     base = SVC(kernel=kernel_name)
 
     cv = StratifiedKFold(n_splits=3, shuffle=True, random_state=seed)
