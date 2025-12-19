@@ -1,7 +1,3 @@
-# lab7_svm_kernels.py
-# ЛР №7: SVM. Оценка вероятностей ошибок для линейно НЕразделимых выборок (2 класса)
-# Ядра: квадратичная функция (poly degree=2) и mlp (sigmoid). Выбор оптимального ядра.
-
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -11,16 +7,7 @@ from sklearn.model_selection import GridSearchCV, StratifiedKFold
 from sklearn.metrics import confusion_matrix, accuracy_score
 
 
-# ---------------------------
-# 1) Генерация данных (две гауссовские выборки с перекрытием => НЕлинейно разделимы)
-# ---------------------------
 def generate_gaussian_2class(n_samples, priors, means, covs, rng):
-    """
-    n_samples: общий размер выборки
-    priors: [p0, p1]
-    means: [mu0 (2,), mu1 (2,)]
-    covs:  [C0 (2,2), C1 (2,2)]
-    """
     priors = np.array(priors, dtype=float)
     priors = priors / priors.sum()
 
@@ -40,9 +27,6 @@ def generate_gaussian_2class(n_samples, priors, means, covs, rng):
     return X[idx], y[idx]
 
 
-# ---------------------------
-# 2) Обучение + оценка вероятностей ошибок
-# ---------------------------
 def fit_best_svm(X_train, y_train, kernel_name, param_grid, seed):
     """
     Подбор гиперпараметров через CV, чтобы сравнение ядер было честным.
@@ -63,13 +47,6 @@ def fit_best_svm(X_train, y_train, kernel_name, param_grid, seed):
 
 
 def error_probabilities(y_true, y_pred):
-    """
-    Возвращает:
-    - матрицу P(решение=j | истинный=i) (нормированная confusion matrix по строкам)
-    - P_err|0 = P(ŷ!=0 | y=0)
-    - P_err|1 = P(ŷ!=1 | y=1)
-    - P_err_overall = 1 - accuracy
-    """
     cm = confusion_matrix(y_true, y_pred, labels=[0, 1])
     cm_norm = cm / cm.sum(axis=1, keepdims=True)  # по строкам: условные вероятности решений
 
@@ -80,9 +57,6 @@ def error_probabilities(y_true, y_pred):
     return cm_norm, p_err_0, p_err_1, p_err_overall
 
 
-# ---------------------------
-# 3) Визуализация областей решений (как в MATLAB примере)
-# ---------------------------
 def plot_decision_regions_2d(ax, clf, X, y, title, step=0.05):
     x1_min, x1_max = X[:, 0].min() - 1.0, X[:, 0].max() + 1.0
     x2_min, x2_max = X[:, 1].min() - 1.0, X[:, 1].max() + 1.0
@@ -105,15 +79,10 @@ def plot_decision_regions_2d(ax, clf, X, y, title, step=0.05):
     ax.legend(loc="best")
 
 
-# ---------------------------
-# 4) Основной эксперимент (статистические испытания)
-# ---------------------------
 def main():
-    # --- Настройки эксперимента ---
     SEED = 7
     rng = np.random.default_rng(SEED)
 
-    # Две гауссовские выборки (перекрываются) => линейно НЕразделимы
     priors = [0.4, 0.6]
 
     means = [
@@ -128,12 +97,10 @@ def main():
                   [3.0,  5.0]]),
     ]
 
-    N_TRIALS = 3      # число статистических испытаний
-    N_TRAIN  = 20     # объем обучающей выборки
-    N_TEST   = 400    # объем тестовой выборки (больше => точнее вероятности)
+    N_TRIALS = 1
+    N_TRAIN = 50
+    N_TEST = 400
 
-    # --- Ядра и сетки гиперпараметров ---
-    # Квадратичная функция ядра: polynomial degree=2
     grid_quadratic = {
         "C": [0.1, 1, 10, 100],
         "gamma": [0.01, 0.1, 1, 10],
@@ -141,7 +108,6 @@ def main():
         "degree": [2],
     }
 
-    # "mlp" ядро (в классическом SVM это sigmoid, как в LIBSVM)
     grid_mlp = {
         "C": [0.1, 1, 10, 100],
         "gamma": [0.01, 0.1, 1, 10],
@@ -155,7 +121,6 @@ def main():
 
     rows = []
 
-    # Чтобы построить картинки — сохраним первый прогон
     first_trial_models = {}
 
     for t in range(N_TRIALS):
@@ -186,7 +151,6 @@ def main():
 
     df = pd.DataFrame(rows)
 
-    # --- Итоговые оценки вероятностей ошибок (среднее по испытаниям) ---
     summary = df.groupby("kernel")[["P(err|0)", "P(err|1)", "P(err)", "acc_test", "cv_acc"]].mean()
     stds = df.groupby("kernel")[["P(err|0)", "P(err|1)", "P(err)"]].std()
 
@@ -195,12 +159,9 @@ def main():
     print("\n=== Стандартные отклонения вероятностей ошибок ===")
     print(stds)
 
-    # --- Выбор оптимального ядра ---
     best_kernel = summary["P(err)"].idxmin()
     print(f"\nОптимальное ядро по критерию min P(err): {best_kernel}")
 
-    # --- Графики ---
-    # 1) Decision regions для первого прогона (2 подграфика)
     fig, axes = plt.subplots(1, 2, figsize=(12, 5))
     for ax, (title, _, _) in zip(axes, kernels):
         clf, Xtr, ytr = first_trial_models[title]
@@ -208,7 +169,6 @@ def main():
     plt.tight_layout()
     plt.show()
 
-    # 2) Столбчатая диаграмма средних P(err)
     fig = plt.figure(figsize=(7, 4))
     plt.bar(summary.index, summary["P(err)"])
     plt.ylabel("P(err) = 1 - Accuracy")
